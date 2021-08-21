@@ -4,6 +4,7 @@ import axios from 'axios'
 import App from './App.vue'
 import router from './router'
 import './plugins/element.js'
+import './plugins/message'
 import './assets/css/global.css'
 
 Vue.config.productionTip = false

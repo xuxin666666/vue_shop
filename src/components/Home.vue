@@ -13,7 +13,7 @@
             </div>
             <el-button type="info" @click="logout">退出</el-button>
         </el-header>
-        <el-container>
+        <el-container style="height: 1px;">
             <el-aside :width="isCollapse ? '64px' : '200px'">
                 <el-tooltip
                     class="item"
@@ -22,10 +22,7 @@
                     placement="right"
                     :enterable="false"
                 >
-                    <div
-                        class="toggle"
-                        @click="toggleCollapse"
-                    >
+                    <div class="toggle" @click="toggleCollapse">
                         <i
                             :class="
                                 isCollapse
@@ -147,12 +144,21 @@ export default {
 
 .el-aside {
     background-color: #333744;
+    // float: left;
+    overflow: auto;
     .el-menu {
         border-right: none;
     }
 }
 .el-main {
     background-color: #eaedf1;
+    // position: absolute;
+    // width: 100%;
+    // float: right;
+    // right: 0;
+    // bottom: 0;
+    // top: 60px;
+    overflow: auto;
 }
 .el-submenu [class^="el-icon-"] {
     margin-right: 10px;

@@ -71,6 +71,7 @@
                                 type="warning"
                                 icon="el-icon-setting"
                                 size="mini"
+                                @click="setRole(scope.row)"
                             />
                         </el-tooltip>
                     </template>
@@ -146,6 +147,40 @@
                 </el-button>
             </span>
         </el-dialog>
+        <el-dialog
+            title="分配角色"
+            :visible.sync="setdRoleDialogVisible"
+            width="50%"
+            @close='setRoleDialogClosed'
+        >
+            <div>
+                <p>当前的用户：{{ userInfo.username }}</p>
+                <p>当前的角色：{{ userInfo.role_name }}</p>
+                <p>
+                    分配新角色：
+                    <el-select v-model="selectedRoleId" placeholder="请选择">
+                        <el-option
+                            v-for="item in rolesList"
+                            :key="item.id"
+                            :label="item.roleName"
+                            :value="item.id"
+                        >
+                        </el-option>
+                    </el-select>
+                </p>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="setdRoleDialogVisible = false">
+                    取 消
+                </el-button>
+                <el-button
+                    type="primary"
+                    @click="saveRoleInfo"
+                >
+                    确 定
+                </el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
@@ -174,10 +209,10 @@ export default {
             total: 0,
             addDialogVisible: false,
             addForm: {
-                username: "321",
-                password: "123123",
-                email: "12@q.q",
-                mobile: "13322224444",
+                username: "",
+                password: "",
+                email: "",
+                mobile: "",
             },
             addFormRules: {
                 username: [
@@ -231,6 +266,10 @@ export default {
             },
             editDialogVisible: false,
             editForm: {},
+            setdRoleDialogVisible: false,
+            userInfo: {},
+            rolesList: [],
+            selectedRoleId: ''
         };
     },
     computed: {
@@ -246,23 +285,17 @@ export default {
                 params: this.queryInfo,
             });
             if (res.meta.status !== 200)
-                return this.$message({
-                    duration: 2000,
-                    message: res.meta.msg,
-                    type: "error",
-                });
+                return this.$message.error(res.meta.msg);
             this.userList = res.data.users;
             this.total = res.data.total;
-            if(this.queryInfo.pagenum * this.queryInfo.pagesize > this.total) 
-                this.queryInfo.pagenum -= 1
+            if (this.queryInfo.pagenum * this.queryInfo.pagesize > this.total)
+                this.queryInfo.pagenum -= 1;
         },
         handleSizeChange(newSize) {
             this.queryInfo.pagesize = newSize;
             this.getUserList();
         },
         handleCurrentChange(newPage) {
-            
-            console.log("newPage", newPage);
             this.queryInfo.pagenum = newPage;
             this.getUserList();
         },
@@ -272,17 +305,9 @@ export default {
             );
             if (res.meta.status !== 200) {
                 userInfo.mg_state = !userInfo.mg_state;
-                return this.$message({
-                    duration: 2000,
-                    message: res.meta.msg,
-                    type: "error",
-                });
+                return this.$message.error(res.meta.msg);
             }
-            this.$message({
-                duration: 2000,
-                message: res.meta.msg,
-                type: "success",
-            });
+            this.$message.success(res.meta.msg);
         },
         addDialogClosed() {
             this.$refs.addFormRef.resetFields();
@@ -295,16 +320,8 @@ export default {
                     this.addForm
                 );
                 if (res.meta.status !== 201)
-                    return this.$message({
-                        duration: 2000,
-                        message: res.meta.msg,
-                        type: "error",
-                    });
-                this.$message({
-                    duration: 2000,
-                    message: res.meta.msg,
-                    type: "success",
-                });
+                    return this.$message.error(res.meta.msg);
+                this.$message.success(res.meta.msg);
                 this.addDialogVisible = false;
                 this.getUserList();
             });
@@ -312,11 +329,7 @@ export default {
         async showEditDialog(id) {
             const { data: res } = await this.$http.get("users/" + id);
             if (res.meta.status !== 200)
-                return this.$message({
-                    duration: 2000,
-                    message: res.meta.msg,
-                    type: "error",
-                });
+                return this.$message.error(res.meta.msg);
             this.editForm = res.data;
             this.editDialogVisible = true;
         },
@@ -331,55 +344,57 @@ export default {
                     { email: this.editForm.email, mobile: this.editForm.mobile }
                 );
                 if (res.meta.status !== 200)
-                    return this.$message({
-                        duration: 2000,
-                        message: res.meta.msg,
-                        type: "error",
-                    });
-                this.$message({
-                    duration: 2000,
-                    message: res.meta.msg,
-                    type: "success",
-                });
+                    return this.$message.error(res.meta.msg);
+                this.$message.success(res.meta.msg);
                 this.editDialogVisible = false;
                 this.getUserList();
             });
         },
         removeUserById(id) {
-            const comfirmResult = this.$confirm(
-                "此操作将永久删除该用户, 是否继续?",
-                "提示",
-                {
-                    confirmButtonText: "确定",
-                    cancelButtonText: "取消",
-                    type: "warning",
-                }
-            )
+            this.$confirm("此操作将永久删除该用户, 是否继续?", "提示", {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning",
+            })
                 .then(() => {
                     this.$http.delete("users/" + id).then((res) => {
                         // console.log(res)
                         if (res.status !== 200)
-                            return this.$message({
-                                duration: 2000,
-                                message: res.data.meta.msg,
-                                type: "error",
-                            });
-                        this.$message({
-                            duration: 2000,
-                            message: res.data.meta.msg,
-                            type: "success",
-                        });
+                            return this.$message.error(res.data.meta.msg);
+                        this.$message.success(res.data.meta.msg);
                         this.getUserList();
                     });
                 })
                 .catch(() => {
-                    this.$message({
-                        duration: 2000,
-                        type: "info",
-                        message: "已取消删除",
-                    });
+                    this.$message.info("已取消删除");
                 });
         },
+        async setRole(userInfo) {
+            this.userInfo = userInfo;
+            const { data: res } = await this.$http.get("roles");
+            if (res.meta.status !== 200)
+                return this.$message.error(res.meta.msg);
+
+            this.rolesList = res.data;
+            this.setdRoleDialogVisible = true;
+        },
+        async saveRoleInfo(){
+            if(!this.selectedRoleId)
+                return this.message.error('请选择要分配的角色！')
+            const {data: res} = await this.$http.put(`users/${this.userInfo.id}/role`, {
+                rid: this.selectedRoleId
+            })
+            if (res.meta.status !== 200)
+                return this.$message.error(res.meta.msg);
+            this.$message.success('分配角色成功');
+
+            this.setdRoleDialogVisible = false
+            this.getUserList()
+        },
+        setRoleDialogClosed(){
+            this.selectedRoleId = ''
+            this.userInfo = {}
+        }
     },
     created() {
         this.getUserList();
