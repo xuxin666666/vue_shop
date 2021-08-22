@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import axios from 'axios'
+import TreeTable from 'vue-table-with-tree-grid'
 
 import App from './App.vue'
 import router from './router'
@@ -15,6 +16,8 @@ axios.interceptors.request.use(config => {
 	return config
 })
 Vue.prototype.$http = axios
+
+Vue.component('tree-table', TreeTable)
 
 new Vue({
 	router,
